@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Impostor</title>
+    <style>
+        :root {
+            --primary: #ff4757;
+            --bg: #2f3542;
+            --text: #f1f2f6;
+            --card: #57606f;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--card);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+        }
+        h1 { color: var(--primary); }
+        
+        input, select {
+            width: 90%;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 20px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 90%;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: none;
+            font-size: 20px;
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background-color: #ff6b81; }
+        
+        .hidden { display: none; }
+        .role-box {
+            background-color: var(--bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 20px;
+        }
+        .impostor-text { color: var(--primary); font-weight: bold; font-size: 24px;}
+        .highlight { color: #ffa502; font-size: 24px; margin: 10px 0; }
+        
+        /* Lista para el orden de turnos */
+        #turn-order {
+            text-align: left;
+            margin: 20px auto;
+            display: inline-block;
+            font-size: 20px;
+        }
+        #turn-order li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="game-container">
+    
+    <div id="screen-setup">
+        <h1>🕵️‍♂️ El Impostor</h1>
+        <p>Selecciona la cantidad de jugadores (3-8):</p>
+        <input type="number" id="player-count" min="3" max="8" value="4">
+        
+        <p>Selecciona una categoría:</p>
+        <select id="category-select">
+            <option value="futbolistas">⚽ Futbolistas</option>
+            <option value="clubes">🏟️ Clubes de Fútbol</option>
+            <option value="objetos">🛋️ Objetos de la Casa</option>
+            <option value="animales">🦁 Animales</option>
+            <option value="famosos">🎮 famosos</option>
+        </select>
+        
+        <button onclick="goToNames()">Siguiente</button>
+    </div>
+
+    <div id="screen-names" class="hidden">
+        <h2>Ingresa los nombres</h2>
+        <div id="names-inputs"></div>
+        <button onclick="startGame()">¡Empezar Juego!</button>
+    </div>
+
+    <div id="screen-pass" class="hidden">
+        <h2>Pasa el teléfono a:</h2>
+        <h1 id="current-player-name" style="color: #1e90ff;">Nombre</h1>
+        <p>Asegúrate de que nadie más esté mirando.</p>
+        <button onclick="showRole()">Ver mi rol</button>
+    </div>
+
+    <div id="screen-role" class="hidden">
+        <h2 id="role-player-name">Nombre</h2>
+        <div class="role-box" id="role-content">
+            </div>
+        <button onclick="nextTurn()">Ocultar y Continuar</button>
+    </div>
+
+    <div id="screen-end" class="hidden">
+        <h1>🗣️ ¡A jugar!</h1>
+        <p>Cada jugador debe decir <strong>UNA SOLA PALABRA</strong> relacionada con la palabra secreta.</p>
+        <p><em>(Ejemplo: Si la palabra es "Mbappé", podrías decir "Tortuga").</em></p>
+        
+        <div class="role-box">
+            <p><strong>Orden de los turnos:</strong></p>
+            <ol id="turn-order"></ol>
+        </div>
+
+        <p>Al terminar la ronda, cuenten hasta 3 y señalen a quién creen que es el impostor.</p>
+        <button onclick="location.reload()">Jugar de nuevo</button>
+    </div>
+
+</div>
+
+<script>
+    // Base de datos de palabras y pistas
+const data = {
+        futbolistas: {
+            words: [
+                "Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Diego Maradona", "Pelé", 
+                "Neymar", "Erling Haaland", "Ronaldinho", "Zinedine Zidane", "Ronaldo Nazário", 
+                "Vinicius JR", "Andrés Iniesta", "Xavi Hernández", "Luka Modric", "Karim Benzema", 
+                "Robert Lewandowski", "Sergio Ramos", "Iker Casillas", "Gianluigi Buffon", "Henry Martin", 
+                "Alan mozo", "Piojo Alvarado", "David Beckham", "Zlatan Ibrahimovic", "Luis Suárez", 
+                "Sergio Agüero", "Ángel Di María", "Raphinha", "Jude Bellingham", "Antoine Griezmann", 
+                "Mohamed Salah", "Kevin De Bruyne", "Rayito Rodriguez", "Paulinho", "Raul Jimenez", 
+                "Julian ALvarez", "Alexis vega", "Canelo Angulo", "Alan Pulido", "Hugo Sánchez", 
+                "Rafael Márquez", "Javier Chicharito Hernández", "Cuauhtémoc Blanco", "Guillermo Ochoa", "Giovanni Dos Santos", 
+                "Kaká", "Gareth Bale", "Phil Foden", "Toni Kroos", "Lamine Yamal"
+            ],
+        },
+        clubes: {
+            words: [
+                "Real Madrid", "Barcelona", "Manchester City", "Boca Juniors", "River Plate", 
+                "Bayern Munich", "Manchester United", "Liverpool", "Arsenal", "Chelsea", 
+                "Tottenham Hotspur", "Juventus", "AC Milan", "Inter de Milán", "Napoli", 
+                "AS Roma", "Paris Saint-Germain", "Borussia Dortmund", "Bayer Leverkusen", "Ajax", 
+                "PSV Eindhoven", "Porto", "Benfica", "Sporting CP", "Atlético de Madrid", 
+                "Sevilla", "Valencia", "Flamengo", "Palmeiras", "Santos", 
+                "São Paulo", "Corinthians", "Peñarol", "Nacional", "Club América", 
+                "Chivas de Guadalajara", "Cruz Azul", "Pumas UNAM", "Monterrey", "Tigres UANL", 
+                "Pachuca", "Toluca", "Atlas", "Club León", "Galatasaray", 
+                "Celtic", "Rangers", "Olympique de Marsella", "Olympique de Lyon"
+            ],
+        },
+        objetos: {
+            words: [
+                "Televisor", "Refrigerador", "Sofá", "Cama", "Microondas", 
+                "Espejo", "Licuadora", "Tostadora", "Cafetera", "Lavadora", 
+                "Secadora", "Plancha", "Aspiradora", "Ventilador", "Lámpara", 
+                "Cuadro", "Reloj de pared", "Estufa", "Horno", "Sartén", 
+                "Olla", "Plato", "Vaso", "Taza", "Cuchillo", 
+                "Tenedor", "Cuchara", "Mesa", "Silla", "Armario", 
+                "Cajonera", "Escritorio", "Computadora", "Laptop", "Teléfono celular", 
+                "Cargador", "Control remoto", "Alfombra", "Cortina", "Toalla", 
+                "Jabón", "Cepillo de dientes", "Pasta dental", "Papel higiénico", "Almohada", 
+                "Sábana", "Cobija", "Escoba", "Trapeador", "Cesto de basura"
+            ],
+            
+        },
+        animales: {
+            words: [
+                "León", "Elefante", "Jirafa", "Tigre", "Pingüino", 
+                "Oso Panda", "Perro Chihuahua", "Gato", "Caballo", "Vaca", 
+                "Cerdo", "Oveja", "Gallina", "Pato", "Conejo", 
+                "Mono", "Gorila", "Canguro", "Rinoceronte", "Hipopótamo", 
+                "Cebra", "Camello", "Oso Polar", "Lobo", "Zorro", 
+                "Venado", "Murciélago", "Águila", "Loro", "Búho", 
+                "Serpiente", "Cocodrilo", "Tortuga", "Rana", "Tiburón", 
+                "Ballena Jorobada", "Delfín", "Pulpo", "Cangrejo", "Araña", 
+                "Mariposa", "Abeja", "Hormiga", "Mosca", "Mosquito", 
+                "Caracol", "Iguana", "Pavo Real", "Koala", "Avestruz"
+            ],
+           
+        },
+        famosos: {
+            words: [
+                "MrBeast", "Ibai Llanos", "Auronplay", "El Rubius", "Luisito Comunica", 
+                "El Mariana", "Rivers GG", "Juan Guarnizo", "AriGameplays", "EL chapo", 
+                "DrossRotzank", "Quackity", "IShowSpeed", "Kai Cenat", "Pablo Escobar",
+                "Soy Xam", "Kimberly Loaiza", "EL Mencho", "Bella Poarch", "German Garmendia", 
+                "Fernanfloo", "Vegetta777", "Willyrex", "El Xokas", "Fede Vigevani", 
+                "Bad Bunny", "Shakira", "Natanael Cano", "Peso Pluma", "Bizarrap", 
+                "Rosalía", "Justin Bieber", "Selena Gomez", "Juan Gabriel", "Billie Eilish", 
+                "The Weeknd", "Karol G", "Maluma", "Rauw Alejandro", "Tom Holland", 
+                "Luzu Games", "Will Smith", "Dwayne Johnson (La Roca)", "Eugenio Derbez", "Tanjiro Kamado"
+            ],
+          
+        }
+    };
+
+    let players = [];
+    let impostorIndex = -1;
+    let secretWord = "";
+    let currentCategoryHint = "";
+    let currentPlayerTurn = 0;
+
+    function showScreen(id) {
+        document.getElementById('screen-setup').classList.add('hidden');
+        document.getElementById('screen-names').classList.add('hidden');
+        document.getElementById('screen-pass').classList.add('hidden');
+        document.getElementById('screen-role').classList.add('hidden');
+        document.getElementById('screen-end').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function goToNames() {
+        let count = parseInt(document.getElementById('player-count').value);
+        if (count < 3 || count > 8) {
+            alert("El número de jugadores debe ser entre 3 y 8.");
+            return;
+        }
+        
+        const namesContainer = document.getElementById('names-inputs');
+        namesContainer.innerHTML = ''; 
+        
+        for (let i = 0; i < count; i++) {
+            namesContainer.innerHTML += `<input type="text" id="player-${i}" placeholder="Jugador ${i+1}" required>`;
+        }
+        showScreen('screen-names');
+    }
+
+    function startGame() {
+        let count = parseInt(document.getElementById('player-count').value);
+        players = [];
+        
+        for (let i = 0; i < count; i++) {
+            let name = document.getElementById(`player-${i}`).value;
+            if (name.trim() === "") name = `Jugador ${i+1}`;
+            players.push(name);
+        }
+
+        const categoryKey = document.getElementById('category-select').value;
+        const categoryData = data[categoryKey];
+        currentCategoryHint = categoryData.hint;
+        
+        const randomWordIndex = Math.floor(Math.random() * categoryData.words.length);
+        secretWord = categoryData.words[randomWordIndex];
+
+        impostorIndex = Math.floor(Math.random() * players.length);
+        
+        currentPlayerTurn = 0;
+        preparePassScreen();
+    }
+
+    // Función para mezclar un arreglo (Algoritmo de Fisher-Yates)
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function preparePassScreen() {
+        if (currentPlayerTurn >= players.length) {
+            // Cuando todos terminan, generamos el orden aleatorio para hablar
+            let speakingOrder = [...players]; // Copiamos el arreglo de jugadores
+            speakingOrder = shuffleArray(speakingOrder); // Lo mezclamos
+            
+            const turnList = document.getElementById('turn-order');
+            turnList.innerHTML = '';
+            
+            // Mostramos el orden en la lista
+            speakingOrder.forEach(player => {
+                turnList.innerHTML += `<li>${player}</li>`;
+            });
+            
+            showScreen('screen-end');
+            return;
+        }
+        document.getElementById('current-player-name').innerText = players[currentPlayerTurn];
+        showScreen('screen-pass');
+    }
+
+    function showRole() {
+        const roleContent = document.getElementById('role-content');
+        document.getElementById('role-player-name').innerText = players[currentPlayerTurn];
+
+        if (currentPlayerTurn === impostorIndex) {
+            roleContent.innerHTML = `
+                <span class="impostor-text">¡ERES EL IMPOSTOR! 🤫</span>
+                <p>Tu objetivo es que no te descubran y adivinar la palabra secreta.</p>
+                <p><strong>Pista: No hay pistas papito piensale</strong></p>
+            `;
+        } else {
+            roleContent.innerHTML = `
+                <p>No eres el impostor.</p>
+                <p>La palabra secreta es:</p>
+                <h3 style="color: #2ed573; font-size: 32px; margin: 10px 0;">${secretWord}</h3>
+            `;
+        }
+        showScreen('screen-role');
+    }
+
+    function nextTurn() {
+        currentPlayerTurn++;
+        preparePassScreen();
+    }
+</script>
+
+</body>
+</html>
