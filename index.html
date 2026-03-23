@@ -10,6 +10,7 @@
             --bg: #2f3542;
             --text: #f1f2f6;
             --card: #57606f;
+            --accent: #1e90ff;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,30 +26,39 @@
         }
         .container {
             background-color: var(--card);
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
             max-width: 450px;
             width: 100%;
         }
-        h1 { color: var(--primary); }
+        h1 { color: var(--primary); margin-bottom: 10px; }
         
         input, select {
-            width: 90%;
+            width: 100%;
             padding: 15px;
-            margin: 12px 0;
+            margin: 10px 0;
             border-radius: 8px;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             box-sizing: border-box;
         }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input { margin: 0; }
+
         button {
-            width: 90%;
+            width: 100%;
             padding: 15px;
-            margin: 15px 0;
+            margin: 10px 0;
             border-radius: 8px;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             background-color: var(--primary);
             color: white;
             font-weight: bold;
@@ -56,7 +66,36 @@
             transition: 0.3s;
         }
         button:hover { background-color: #ff6b81; }
-        
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .btn-add { background-color: var(--accent); width: auto; white-space: nowrap; }
+
+        .player-list {
+            text-align: left;
+            margin: 20px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #4b5463;
+        }
+        .player-item:last-child { border-bottom: none; }
+        .btn-del {
+            background-color: transparent;
+            color: #ff4757;
+            width: auto;
+            padding: 5px 10px;
+            margin: 0;
+            font-size: 20px;
+        }
+
         .hidden { display: none; }
         .role-box {
             background-color: var(--bg);
@@ -66,45 +105,44 @@
             font-size: 20px;
         }
         .impostor-text { color: var(--primary); font-weight: bold; font-size: 24px;}
-        .highlight { color: #ffa502; font-size: 24px; margin: 10px 0; }
+        .reveal-box { color: #ffa502; font-weight: bold; font-size: 22px; margin-top: 15px; }
         
-        /* Lista para el orden de turnos */
         #turn-order {
             text-align: left;
             margin: 20px auto;
             display: inline-block;
             font-size: 20px;
         }
-        #turn-order li {
-            margin-bottom: 10px;
-        }
+        footer { margin-top: 20px; opacity: 0.7; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="container" id="game-container">
+<div class="container">
     
     <div id="screen-setup">
         <h1>🕵️‍♂️ El Impostor</h1>
-        <p>Selecciona la cantidad de jugadores (3-8):</p>
-        <input type="number" id="player-count" min="3" max="8" value="4">
         
         <p>Selecciona una categoría:</p>
         <select id="category-select">
             <option value="futbolistas">⚽ Futbolistas</option>
             <option value="clubes">🏟️ Clubes de Fútbol</option>
-            <option value="objetos">🛋️ Objetos de la Casa</option>
+            <option value="objetos">🏠 Objetos de la Casa</option>
             <option value="animales">🦁 Animales</option>
-            <option value="famosos">🎮 famosos</option>
+            <option value="famosos">⭐ Famosos</option>
         </select>
-        
-        <button onclick="goToNames()">Siguiente</button>
-    </div>
 
-    <div id="screen-names" class="hidden">
-        <h2>Ingresa los nombres</h2>
-        <div id="names-inputs"></div>
-        <button onclick="startGame()">¡Empezar Juego!</button>
+        <hr style="border: 0.5px solid #4b5463; margin: 20px 0;">
+
+        <h3>Jugadores (3-8)</h3>
+        <div class="input-group">
+            <input type="text" id="new-player-name" placeholder="Escribe un nombre">
+            <button class="btn-add" onclick="addPlayer()">Añadir</button>
+        </div>
+
+        <div id="player-list-container" class="player-list"></div>
+        
+        <button id="btn-start" onclick="startGame()" disabled>¡Empezar Juego!</button>
     </div>
 
     <div id="screen-pass" class="hidden">
@@ -116,215 +154,154 @@
 
     <div id="screen-role" class="hidden">
         <h2 id="role-player-name">Nombre</h2>
-        <div class="role-box" id="role-content">
-            </div>
+        <div class="role-box" id="role-content"></div>
         <button onclick="nextTurn()">Ocultar y Continuar</button>
     </div>
 
     <div id="screen-end" class="hidden">
         <h1>🗣️ ¡A jugar!</h1>
-        <p>Cada jugador debe decir <strong>UNA SOLA PALABRA</strong> relacionada con la palabra secreta.</p>
-        <p><em>(Ejemplo: Si la palabra es "Mbappé", podrías decir "Tortuga").</em></p>
-        
+        <p>Digan <strong>UNA PALABRA</strong> siguiendo este orden:</p>
         <div class="role-box">
-            <p><strong>Orden de los turnos:</strong></p>
             <ol id="turn-order"></ol>
         </div>
+        
+        <button id="btn-reveal" style="background-color: #ffa502;" onclick="revealImpostor()">Revelar Impostor</button>
+        <div id="reveal-area" class="reveal-box hidden"></div>
 
-        <p>Al terminar la ronda, cuenten hasta 3 y señalen a quién creen que es el impostor.</p>
-        <button onclick="location.reload()">Jugar de nuevo</button>
+        <button onclick="resetGame()">Nueva Partida</button>
+        <button style="background-color: #4b5463;" onclick="fullReset()">Borrar todo y Salir</button>
     </div>
 
 </div>
 
+<footer><p>Autor: Andrey Gonzalez</p></footer>
+
 <script>
-    // Base de datos de palabras y pistas
-const data = {
-        futbolistas: {
-            words: [
-                "Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Diego Maradona", "Pelé", 
-                "Neymar", "Erling Haaland", "Ronaldinho", "Zinedine Zidane", "Ronaldo Nazário", 
-                "Vinicius JR", "Andrés Iniesta", "Xavi Hernández", "Luka Modric", "Karim Benzema", 
-                "Robert Lewandowski", "Sergio Ramos", "Iker Casillas", "Gianluigi Buffon", "Henry Martin", 
-                "Alan mozo", "Piojo Alvarado", "David Beckham", "Zlatan Ibrahimovic", "Luis Suárez", 
-                "Sergio Agüero", "Ángel Di María", "Raphinha", "Jude Bellingham", "Antoine Griezmann", 
-                "Mohamed Salah", "Kevin De Bruyne", "Rayito Rodriguez", "Paulinho", "Raul Jimenez", 
-                "Julian ALvarez", "Alexis vega", "Canelo Angulo", "Alan Pulido", "Hugo Sánchez", 
-                "Rafael Márquez", "Javier Chicharito Hernández", "Cuauhtémoc Blanco", "Guillermo Ochoa", "Giovanni Dos Santos", 
-                "Kaká", "Gareth Bale", "Phil Foden", "Toni Kroos", "Lamine Yamal"
-            ],
-        },
-        clubes: {
-            words: [
-                "Real Madrid", "Barcelona", "Manchester City", "Boca Juniors", "River Plate", 
-                "Bayern Munich", "Manchester United", "Liverpool", "Arsenal", "Chelsea", 
-                "Tottenham Hotspur", "Juventus", "AC Milan", "Inter de Milán", "Napoli", 
-                "AS Roma", "Paris Saint-Germain", "Borussia Dortmund", "Bayer Leverkusen", "Ajax", 
-                "PSV Eindhoven", "Porto", "Benfica", "Sporting CP", "Atlético de Madrid", 
-                "Sevilla", "Valencia", "Flamengo", "Palmeiras", "Santos", 
-                "São Paulo", "Corinthians", "Peñarol", "Nacional", "Club América", 
-                "Chivas de Guadalajara", "Cruz Azul", "Pumas UNAM", "Monterrey", "Tigres UANL", 
-                "Pachuca", "Toluca", "Atlas", "Club León", "Galatasaray", 
-                "Celtic", "Rangers", "Olympique de Marsella", "Olympique de Lyon"
-            ],
-        },
-        objetos: {
-            words: [
-                "Televisor", "Refrigerador", "Sofá", "Cama", "Microondas", 
-                "Espejo", "Licuadora", "Tostadora", "Cafetera", "Lavadora", 
-                "Secadora", "Plancha", "Aspiradora", "Ventilador", "Lámpara", 
-                "Cuadro", "Reloj de pared", "Estufa", "Horno", "Sartén", 
-                "Olla", "Plato", "Vaso", "Taza", "Cuchillo", 
-                "Tenedor", "Cuchara", "Mesa", "Silla", "Armario", 
-                "Cajonera", "Escritorio", "Computadora", "Laptop", "Teléfono celular", 
-                "Cargador", "Control remoto", "Alfombra", "Cortina", "Toalla", 
-                "Jabón", "Cepillo de dientes", "Pasta dental", "Papel higiénico", "Almohada", 
-                "Sábana", "Cobija", "Escoba", "Trapeador", "Cesto de basura"
-            ],
-            
-        },
-        animales: {
-            words: [
-                "León", "Elefante", "Jirafa", "Tigre", "Pingüino", 
-                "Oso Panda", "Perro Chihuahua", "Gato", "Caballo", "Vaca", 
-                "Cerdo", "Oveja", "Gallina", "Pato", "Conejo", 
-                "Mono", "Gorila", "Canguro", "Rinoceronte", "Hipopótamo", 
-                "Cebra", "Camello", "Oso Polar", "Lobo", "Zorro", 
-                "Venado", "Murciélago", "Águila", "Loro", "Búho", 
-                "Serpiente", "Cocodrilo", "Tortuga", "Rana", "Tiburón", 
-                "Ballena Jorobada", "Delfín", "Pulpo", "Cangrejo", "Araña", 
-                "Mariposa", "Abeja", "Hormiga", "Mosca", "Mosquito", 
-                "Caracol", "Iguana", "Pavo Real", "Koala", "Avestruz"
-            ],
-           
-        },
-        famosos: {
-            words: [
-                "MrBeast", "Ibai Llanos", "Auronplay", "El Rubius", "Luisito Comunica", 
-                "El Mariana", "Rivers GG", "Juan Guarnizo", "AriGameplays", "EL chapo", 
-                "DrossRotzank", "Quackity", "IShowSpeed", "Kai Cenat", "Pablo Escobar",
-                "Soy Xam", "Kimberly Loaiza", "EL Mencho", "Bella Poarch", "German Garmendia", 
-                "Fernanfloo", "Vegetta777", "Willyrex", "El Xokas", "Fede Vigevani", 
-                "Bad Bunny", "Shakira", "Natanael Cano", "Peso Pluma", "Bizarrap", 
-                "Rosalía", "Justin Bieber", "Selena Gomez", "Juan Gabriel", "Billie Eilish", 
-                "The Weeknd", "Karol G", "Maluma", "Rauw Alejandro", "Tom Holland", 
-                "Luzu Games", "Will Smith", "Dwayne Johnson (La Roca)", "Eugenio Derbez", "Tanjiro Kamado"
-            ],
-          
-        }
+    const data = {
+        futbolistas: { words: ["Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Diego Maradona", "Pelé", "Neymar", "Vinicius JR", "Andrés Iniesta", "Xavi Hernández", "Luka Modric", "Karim Benzema", "Robert Lewandowski", "Sergio Ramos", "Iker Casillas", "Gianluigi Buffon", "Henry Martin", "Alan mozo", "Piojo Alvarado", "David Beckham", "Zlatan Ibrahimovic", "Luis Suárez", "Sergio Agüero", "Ángel Di María", "Raphinha", "Jude Bellingham", "Antoine Griezmann", "Mohamed Salah", "Kevin De Bruyne", "Rayito Rodriguez", "Paulinho", "Raul Jimenez", "Julian ALvarez", "Alexis vega", "Canelo Angulo", "Alan Pulido", "Hugo Sánchez", "Rafael Márquez", "Javier Chicharito Hernández", "Cuauhtémoc Blanco", "Guillermo Ochoa", "Giovanni Dos Santos", "Kaká", "Gareth Bale", "Phil Foden", "Toni Kroos", "Lamine Yamal"] },
+        clubes: { words: ["Real Madrid", "Barcelona", "Manchester City", "Boca Juniors", "River Plate", "Bayern Munich", "Manchester United", "Liverpool", "Arsenal", "Chelsea", "Tottenham Hotspur", "Juventus", "AC Milan", "Inter de Milán", "Napoli", "AS Roma", "Paris Saint-Germain", "Borussia Dortmund", "Bayer Leverkusen", "Ajax", "PSV Eindhoven", "Porto", "Benfica", "Sporting CP", "Atlético de Madrid", "Sevilla", "Valencia", "Flamengo", "Palmeiras", "Santos", "São Paulo", "Corinthians", "Peñarol", "Nacional", "Club América", "Chivas de Guadalajara", "Cruz Azul", "Pumas UNAM", "Monterrey", "Tigres UANL", "Pachuca", "Toluca", "Atlas", "Club León", "Galatasaray", "Celtic", "Rangers", "Olympique de Marsella", "Olympique de Lyon"] },
+        objetos: { words: ["Televisor", "Refrigerador", "Sofá", "Cama", "Microondas", "Espejo", "Licuadora", "Tostadora", "Cafetera", "Lavadora", "Secadora", "Plancha", "Aspiradora", "Ventilador", "Lámpara", "Cuadro", "Reloj de pared", "Estufa", "Horno", "Sartén", "Olla", "Plato", "Vaso", "Taza", "Cuchillo", "Tenedor", "Cuchara", "Mesa", "Silla", "Armario", "Cajonera", "Escritorio", "Computadora", "Laptop", "Teléfono celular", "Cargador", "Control remoto", "Alfombra", "Cortina", "Toalla", "Jabón", "Cepillo de dientes", "Pasta dental", "Papel higiénico", "Almohada", "Sábana", "Cobija", "Escoba", "Trapeador", "Cesto de basura"] },
+        animales: { words: ["León", "Elefante", "Jirafa", "Tigre", "Pingüino", "Oso Panda", "Perro Chihuahua", "Gato", "Caballo", "Vaca", "Cerdo", "Oveja", "Gallina", "Pato", "Conejo", "Mono", "Gorila", "Canguro", "Rinoceronte", "Hipopótamo", "Cebra", "Camello", "Oso Polar", "Lobo", "Zorro", "Venado", "Murciélago", "Águila", "Loro", "Búho", "Serpiente", "Cocodrilo", "Tortuga", "Rana", "Tiburón", "Ballena Jorobada", "Delfín", "Pulpo", "Cangrejo", "Araña", "Mariposa", "Abeja", "Hormiga", "Mosca", "Mosquito", "Caracol", "Iguana", "Pavo Real", "Koala", "Avestruz"] },
+        famosos: { words: ["MrBeast", "Ibai Llanos", "Auronplay", "El Rubius", "Luisito Comunica", "El Mariana", "Rivers GG", "Juan Guarnizo", "AriGameplays", "EL chapo", "DrossRotzank", "Quackity", "IShowSpeed", "Kai Cenat", "Pablo Escobar", "Soy Xam", "Kimberly Loaiza", "EL Mencho", "Bella Poarch", "German Garmendia", "Fernanfloo", "Vegetta777", "Willyrex", "El Xokas", "Fede Vigevani", "Bad Bunny", "Shakira", "Natanael Cano", "Peso Pluma", "Bizarrap", "Rosalía", "Justin Bieber", "Selena Gomez", "Juan Gabriel", "Billie Eilish", "The Weeknd", "Karol G", "Maluma", "Rauw Alejandro", "Tom Holland", "Luzu Games", "Will Smith", "Dwayne Johnson (La Roca)", "Eugenio Derbez", "Tanjiro Kamado"] }
     };
 
-    let players = [];
-    let impostorIndex = -1;
+    let players = JSON.parse(sessionStorage.getItem('impostor_temp_players')) || [];
+    let gameOrder = []; // El orden aleatorio de la partida actual
+    let impostorName = "";
     let secretWord = "";
-    let currentCategoryHint = "";
     let currentPlayerTurn = 0;
 
+    renderPlayers();
+
+    function addPlayer() {
+        const input = document.getElementById('new-player-name');
+        const name = input.value.trim();
+        if (name && players.length < 8) {
+            players.push(name);
+            input.value = '';
+            saveAndRender();
+        }
+    }
+
+    function removePlayer(index) {
+        players.splice(index, 1);
+        saveAndRender();
+    }
+
+    function saveAndRender() {
+        sessionStorage.setItem('impostor_temp_players', JSON.stringify(players));
+        renderPlayers();
+    }
+
+    function renderPlayers() {
+        const container = document.getElementById('player-list-container');
+        const btnStart = document.getElementById('btn-start');
+        container.innerHTML = players.length === 0 ? '<p style="opacity:0.5;">Añade al menos 3 amigos</p>' : '';
+        players.forEach((n, i) => {
+            container.innerHTML += `<div class="player-item"><span>${n}</span><button class="btn-del" onclick="removePlayer(${i})">✕</button></div>`;
+        });
+        btnStart.disabled = players.length < 3;
+    }
+
     function showScreen(id) {
-        document.getElementById('screen-setup').classList.add('hidden');
-        document.getElementById('screen-names').classList.add('hidden');
-        document.getElementById('screen-pass').classList.add('hidden');
-        document.getElementById('screen-role').classList.add('hidden');
-        document.getElementById('screen-end').classList.add('hidden');
+        ['screen-setup', 'screen-pass', 'screen-role', 'screen-end'].forEach(s => document.getElementById(s).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
-    function goToNames() {
-        let count = parseInt(document.getElementById('player-count').value);
-        if (count < 3 || count > 8) {
-            alert("El número de jugadores debe ser entre 3 y 8.");
-            return;
-        }
-        
-        const namesContainer = document.getElementById('names-inputs');
-        namesContainer.innerHTML = ''; 
-        
-        for (let i = 0; i < count; i++) {
-            namesContainer.innerHTML += `<input type="text" id="player-${i}" placeholder="Jugador ${i+1}" required>`;
-        }
-        showScreen('screen-names');
-    }
-
-    function startGame() {
-        let count = parseInt(document.getElementById('player-count').value);
-        players = [];
-        
-        for (let i = 0; i < count; i++) {
-            let name = document.getElementById(`player-${i}`).value;
-            if (name.trim() === "") name = `Jugador ${i+1}`;
-            players.push(name);
-        }
-
-        const categoryKey = document.getElementById('category-select').value;
-        const categoryData = data[categoryKey];
-        currentCategoryHint = categoryData.hint;
-        
-        const randomWordIndex = Math.floor(Math.random() * categoryData.words.length);
-        secretWord = categoryData.words[randomWordIndex];
-
-        impostorIndex = Math.floor(Math.random() * players.length);
-        
-        currentPlayerTurn = 0;
-        preparePassScreen();
-    }
-
-    // Función para mezclar un arreglo (Algoritmo de Fisher-Yates)
-    function shuffleArray(array) {
-        let currentIndex = array.length, randomIndex;
-        while (currentIndex !== 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    // MEZCLAR ARRAY (Algoritmo Fisher-Yates)
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
     }
 
+    function startGame() {
+        const cat = document.getElementById('category-select').value;
+        secretWord = data[cat].words[Math.floor(Math.random() * data[cat].words.length)];
+        
+        // 1. Elegir impostor al azar de la lista original
+        const randomImpostor = players[Math.floor(Math.random() * players.length)];
+        impostorName = randomImpostor;
+
+        // 2. Crear los roles
+        gameOrder = players.map(p => ({
+            name: p,
+            isImpostor: (p === randomImpostor)
+        }));
+
+        // 3. MEZCLAR EL ORDEN de visualización (Aquí se hace aleatorio el orden de pasar el móvil)
+        shuffle(gameOrder);
+
+        currentPlayerTurn = 0;
+        document.getElementById('reveal-area').classList.add('hidden');
+        document.getElementById('btn-reveal').classList.remove('hidden');
+        preparePassScreen();
+    }
+
     function preparePassScreen() {
-        if (currentPlayerTurn >= players.length) {
-            // Cuando todos terminan, generamos el orden aleatorio para hablar
-            let speakingOrder = [...players]; // Copiamos el arreglo de jugadores
-            speakingOrder = shuffleArray(speakingOrder); // Lo mezclamos
-            
+        if (currentPlayerTurn >= gameOrder.length) {
+            // Orden para decir palabras al final
             const turnList = document.getElementById('turn-order');
             turnList.innerHTML = '';
-            
-            // Mostramos el orden en la lista
-            speakingOrder.forEach(player => {
-                turnList.innerHTML += `<li>${player}</li>`;
-            });
-            
+            let speakingOrder = shuffle([...players]);
+            speakingOrder.forEach(p => turnList.innerHTML += `<li>${p}</li>`);
             showScreen('screen-end');
             return;
         }
-        document.getElementById('current-player-name').innerText = players[currentPlayerTurn];
+        document.getElementById('current-player-name').innerText = gameOrder[currentPlayerTurn].name;
         showScreen('screen-pass');
     }
 
     function showRole() {
-        const roleContent = document.getElementById('role-content');
-        document.getElementById('role-player-name').innerText = players[currentPlayerTurn];
-
-        if (currentPlayerTurn === impostorIndex) {
-            roleContent.innerHTML = `
-                <span class="impostor-text">¡ERES EL IMPOSTOR! 🤫</span>
-                <p>Tu objetivo es que no te descubran y adivinar la palabra secreta.</p>
-                <p><strong>Pista: No hay pistas papito piensale</strong></p>
-            `;
+        const content = document.getElementById('role-content');
+        const currentPlayer = gameOrder[currentPlayerTurn];
+        document.getElementById('role-player-name').innerText = currentPlayer.name;
+        
+        if (currentPlayer.isImpostor) {
+            content.innerHTML = `<span class="impostor-text">¡ERES EL IMPOSTOR! 🤫</span><p>No hay pistas papito piensale</p>`;
         } else {
-            roleContent.innerHTML = `
-                <p>No eres el impostor.</p>
-                <p>La palabra secreta es:</p>
-                <h3 style="color: #2ed573; font-size: 32px; margin: 10px 0;">${secretWord}</h3>
-            `;
+            content.innerHTML = `<p>La palabra es:</p><h3 style="color:#2ed573; font-size:32px;">${secretWord}</h3>`;
         }
         showScreen('screen-role');
     }
 
-    function nextTurn() {
-        currentPlayerTurn++;
-        preparePassScreen();
+    function nextTurn() { currentPlayerTurn++; preparePassScreen(); }
+    
+    function revealImpostor() {
+        const area = document.getElementById('reveal-area');
+        area.innerHTML = `🕵️‍♂️ El impostor era: <br><span style="color:white; font-size:30px;">${impostorName}</span>`;
+        area.classList.remove('hidden');
+        document.getElementById('btn-reveal').classList.add('hidden');
+    }
+
+    function resetGame() { showScreen('screen-setup'); }
+
+    function fullReset() {
+        sessionStorage.clear();
+        location.reload();
     }
 </script>
-
 </body>
 </html>
