@@ -125,6 +125,7 @@
         
         <p>Selecciona una categoría:</p>
         <select id="category-select">
+            <option value="clash_royale">👑 Clash Royale</option>
             <option value="futbolistas">⚽ Futbolistas</option>
             <option value="clubes">🏟️ Clubes de Fútbol</option>
             <option value="objetos">🏠 Objetos de la Casa</option>
@@ -178,6 +179,7 @@
 
 <script>
     const data = {
+        clash_royale: { words: ["Montapuercos", "P.E.K.K.A", "Mega Caballero", "Tronco", "Mago Eléctrico", "Princesa", "Minero", "Ejército de Esqueletos", "Globo Bombástico", "Dragón Infernal", "Bárbaros de Élite", "Gigante Noble", "Chispitas", "Mago de Hielo", "Sabueso de Lava", "Cementerio", "Bandida", "Fantasma Real", "Bruja Nocturna", "Leñador", "Ariete de Batalla", "Verdugo", "Lanzarrocas", "Trío de Mosqueteras", "Gólem de Elixir", "Ballesta", "Mortero", "Torre Infernal", "Montacarneros", "Fénix", "Monje", "Pequeño Príncipe", "Duende Lanzadardos", "Valquiria", "Caballero", "Mosquetera", "Mini P.E.K.K.A", "Bebé Dragón", "Barril de Duendes", "Veneno", "Bola de Fuego", "Descarga (Zap)", "Flechas", "Cohete", "Rayo", "Espejo", "Terremoto", "Paquete Real", "Espíritu de Hielo", "Espíritu de Fuego"] },
         futbolistas: { words: ["Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Diego Maradona", "Pelé", "Neymar", "Vinicius JR", "Andrés Iniesta", "Xavi Hernández", "Luka Modric", "Karim Benzema", "Robert Lewandowski", "Sergio Ramos", "Iker Casillas", "Gianluigi Buffon", "Henry Martin", "Alan mozo", "Piojo Alvarado", "David Beckham", "Zlatan Ibrahimovic", "Luis Suárez", "Sergio Agüero", "Ángel Di María", "Raphinha", "Jude Bellingham", "Antoine Griezmann", "Mohamed Salah", "Kevin De Bruyne", "Rayito Rodriguez", "Paulinho", "Raul Jimenez", "Julian ALvarez", "Alexis vega", "Canelo Angulo", "Alan Pulido", "Hugo Sánchez", "Rafael Márquez", "Javier Chicharito Hernández", "Cuauhtémoc Blanco", "Guillermo Ochoa", "Giovanni Dos Santos", "Kaká", "Gareth Bale", "Phil Foden", "Toni Kroos", "Lamine Yamal"] },
         clubes: { words: ["Real Madrid", "Barcelona", "Manchester City", "Boca Juniors", "River Plate", "Bayern Munich", "Manchester United", "Liverpool", "Arsenal", "Chelsea", "Tottenham Hotspur", "Juventus", "AC Milan", "Inter de Milán", "Napoli", "AS Roma", "Paris Saint-Germain", "Borussia Dortmund", "Bayer Leverkusen", "Ajax", "PSV Eindhoven", "Porto", "Benfica", "Sporting CP", "Atlético de Madrid", "Sevilla", "Valencia", "Flamengo", "Palmeiras", "Santos", "São Paulo", "Corinthians", "Peñarol", "Nacional", "Club América", "Chivas de Guadalajara", "Cruz Azul", "Pumas UNAM", "Monterrey", "Tigres UANL", "Pachuca", "Toluca", "Atlas", "Club León", "Galatasaray", "Celtic", "Rangers", "Olympique de Marsella", "Olympique de Lyon"] },
         objetos: { words: ["Televisor", "Refrigerador", "Sofá", "Cama", "Microondas", "Espejo", "Licuadora", "Tostadora", "Cafetera", "Lavadora", "Secadora", "Plancha", "Aspiradora", "Ventilador", "Lámpara", "Cuadro", "Reloj de pared", "Estufa", "Horno", "Sartén", "Olla", "Plato", "Vaso", "Taza", "Cuchillo", "Tenedor", "Cuchara", "Mesa", "Silla", "Armario", "Cajonera", "Escritorio", "Computadora", "Laptop", "Teléfono celular", "Cargador", "Control remoto", "Alfombra", "Cortina", "Toalla", "Jabón", "Cepillo de dientes", "Pasta dental", "Papel higiénico", "Almohada", "Sábana", "Cobija", "Escoba", "Trapeador", "Cesto de basura"] },
@@ -186,7 +188,7 @@
     };
 
     let players = JSON.parse(sessionStorage.getItem('impostor_temp_players')) || [];
-    let gameOrder = []; // El orden aleatorio de la partida actual
+    let gameOrder = []; 
     let impostorName = "";
     let secretWord = "";
     let currentPlayerTurn = 0;
@@ -228,7 +230,6 @@
         document.getElementById(id).classList.remove('hidden');
     }
 
-    // MEZCLAR ARRAY (Algoritmo Fisher-Yates)
     function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -241,19 +242,15 @@
         const cat = document.getElementById('category-select').value;
         secretWord = data[cat].words[Math.floor(Math.random() * data[cat].words.length)];
         
-        // 1. Elegir impostor al azar de la lista original
         const randomImpostor = players[Math.floor(Math.random() * players.length)];
         impostorName = randomImpostor;
 
-        // 2. Crear los roles
         gameOrder = players.map(p => ({
             name: p,
             isImpostor: (p === randomImpostor)
         }));
 
-        // 3. MEZCLAR EL ORDEN de visualización (Aquí se hace aleatorio el orden de pasar el móvil)
         shuffle(gameOrder);
-
         currentPlayerTurn = 0;
         document.getElementById('reveal-area').classList.add('hidden');
         document.getElementById('btn-reveal').classList.remove('hidden');
@@ -262,7 +259,6 @@
 
     function preparePassScreen() {
         if (currentPlayerTurn >= gameOrder.length) {
-            // Orden para decir palabras al final
             const turnList = document.getElementById('turn-order');
             turnList.innerHTML = '';
             let speakingOrder = shuffle([...players]);
