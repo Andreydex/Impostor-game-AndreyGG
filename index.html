@@ -124,14 +124,16 @@
         <h1>🕵️‍♂️ El Impostor</h1>
         
         <p>Selecciona una categoría:</p>
-        <select id="category-select">
-            <option value="clash_royale">👑 Clash Royale</option>
-            <option value="futbolistas">⚽ Futbolistas</option>
-            <option value="clubes">🏟️ Clubes de Fútbol</option>
-            <option value="objetos">🏠 Objetos de la Casa</option>
-            <option value="animales">🦁 Animales</option>
-            <option value="famosos">⭐ Famosos</option>
-        </select>
+      <select id="category-select">
+    <option value="videojuegos">🎮 Videojuegos</option>
+    <option value="clash_royale">👑 Clash Royale</option>
+    <option value="futbolistas">⚽ Futbolistas</option>
+    <option value="clubes">🏟️ Clubes de Fútbol</option>
+    <option value="objetos">🏠 Objetos de la Casa</option>
+    <option value="animales">🦁 Animales</option>
+    <option value="famosos">⭐ Famosos</option>
+    <option value="caricaturas_peliculas">🎬 Caricaturas y Películas</option>
+</select>
 
         <hr style="border: 0.5px solid #4b5463; margin: 20px 0;">
 
@@ -179,6 +181,8 @@
 
 <script>
     const data = {
+        caricaturas_peliculas:{words:["Spider-Man","Batman","Superman","Iron Man","Hulk","Shrek","Toy Story","Cars","Frozen","Minions","Los Simpson","Bob Esponja","Dragon Ball","One Piece","Pokémon","Sonic","Mario Bros","Scooby-Doo","Tom y Jerry","Ben 10","Hora de Aventura","Rick y Morty","Los Increíbles","Jurassic Park","Avengers","Star Wars","Harry Potter","El Rey León","Aladdín","Coco","Deadpool","Capitán América","Flash","Aquaman","Linterna Verde","Venom","Black Panther","Doctor Strange","Ant-Man","Guardianes de la Galaxia","Kung Fu Panda","Madagascar","Megamente","Hotel Transylvania","Mi villano favorito","Era De hielo","Transformers","Rápidos y Furiosos","Matrix","Avatar","Titanic","Joker","Cómo entrenar a tu dragón","Demon Slayer"]},
+        videojuegos:{words:["Free Fire","PUBG","Fortnite","Blur","GTA V","Brawl stars","Call of Duty","FIFA","Minecraft","Rocket League","Super Smash Bros","Clash Royale","Subway Surfers","Roblox","Among US","Pou","Zombie tsunami","Angry Birds","Candy Crush","Pac-Man","Tetris","King of Fighters"]},
         clash_royale: { words: ["Montapuercos", "P.E.K.K.A", "Mega Caballero", "Tronco", "Mago Eléctrico", "Princesa", "Minero", "Ejército de Esqueletos", "Globo Bombástico", "Dragón Infernal", "Bárbaros de Élite", "Gigante Noble", "Chispitas", "Mago de Hielo", "Sabueso de Lava", "Cementerio", "Bandida", "Fantasma Real", "Bruja Nocturna", "Leñador", "Ariete de Batalla", "Verdugo", "Lanzarrocas", "Trío de Mosqueteras", "Gólem de Elixir", "Ballesta", "Mortero", "Torre Infernal", "Montacarneros", "Fénix", "Monje", "Pequeño Príncipe", "Duende Lanzadardos", "Valquiria", "Caballero", "Mosquetera", "Mini P.E.K.K.A", "Bebé Dragón", "Barril de Duendes", "Veneno", "Bola de Fuego", "Descarga (Zap)", "Flechas", "Cohete", "Rayo", "Espejo", "Terremoto", "Paquete Real", "Espíritu de Hielo", "Espíritu de Fuego"] },
         futbolistas: { words: ["Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Diego Maradona", "Pelé", "Neymar", "Vinicius JR", "Andrés Iniesta", "Xavi Hernández", "Luka Modric", "Karim Benzema", "Robert Lewandowski", "Sergio Ramos", "Iker Casillas", "Gianluigi Buffon", "Henry Martin", "Alan mozo", "Piojo Alvarado", "David Beckham", "Zlatan Ibrahimovic", "Luis Suárez", "Sergio Agüero", "Ángel Di María", "Raphinha", "Jude Bellingham", "Antoine Griezmann", "Mohamed Salah", "Kevin De Bruyne", "Rayito Rodriguez", "Paulinho", "Raul Jimenez", "Julian ALvarez", "Alexis vega", "Canelo Angulo", "Alan Pulido", "Hugo Sánchez", "Rafael Márquez", "Javier Chicharito Hernández", "Cuauhtémoc Blanco", "Guillermo Ochoa", "Giovanni Dos Santos", "Kaká", "Gareth Bale", "Phil Foden", "Toni Kroos", "Lamine Yamal"] },
         clubes: { words: ["Real Madrid", "Barcelona", "Manchester City", "Boca Juniors", "River Plate", "Bayern Munich", "Manchester United", "Liverpool", "Arsenal", "Chelsea", "Tottenham Hotspur", "Juventus", "AC Milan", "Inter de Milán", "Napoli", "AS Roma", "Paris Saint-Germain", "Borussia Dortmund", "Bayer Leverkusen", "Ajax", "PSV Eindhoven", "Porto", "Benfica", "Sporting CP", "Atlético de Madrid", "Sevilla", "Valencia", "Flamengo", "Palmeiras", "Santos", "São Paulo", "Corinthians", "Peñarol", "Nacional", "Club América", "Chivas de Guadalajara", "Cruz Azul", "Pumas UNAM", "Monterrey", "Tigres UANL", "Pachuca", "Toluca", "Atlas", "Club León", "Galatasaray", "Celtic", "Rangers", "Olympique de Marsella", "Olympique de Lyon"] },
