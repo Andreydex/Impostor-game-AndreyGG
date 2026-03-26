@@ -1,0 +1,18 @@
+{
+  "short_name": "Impostor",
+  "name": "El Impostor - Juego de Mesa",
+  "description": "Juego de mesa para descubrir al impostor entre tus amigos.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2591/2591141.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#2f3542",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#ff4757"
+}
